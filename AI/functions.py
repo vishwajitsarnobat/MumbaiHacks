@@ -20,11 +20,9 @@ def llama():
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()
 
-def image():
+def image(input):
     payload = {
-        "inputs": '''You are a digital marketing firm. Your client wants a advertisemnt image to post on instagram.
-        Your client owns a sweets shop in Mumbai selling famous sweets in Mumbai. He wants the advertisement for boosting sales in Diwali.
-        Include diwali sale offer which gives 20 percent off on any sweets'''
+        "inputs": f'{input}'
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
@@ -34,17 +32,42 @@ def image():
         f.write(image_data)
     return image_data
 
-def gemini():
+def gemini(prompt):
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     genai.configure(api_key=GEMINI_API_KEY)
 
     model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-    # Prepare the input text
-    input_text = 'Hello, how are you today?'
-
     # Generate content with the model
-    response = model.generate_content(f"Translate '{input_text}' to Hindi.")
+    response = model.generate_content(prompt)
     return response.text
 
+def format_captions(caption_output):
+
+
 # Overall workflow
+'''
+location, age, languages, prompt 
+array, string, array, string
+outputs: {"language":(title, description, image)}
+'''
+def get_details(location, age, languages, prompt):
+    proper_prompt = '''Generate advertisement caption / content for the given prompt by the user.
+        The user requirements are given in the prompt as {prompt}.
+        The output should be based on the locations {location} targeting {age} age group, 
+        and in {languages} languages to capture cultural nuances, and regional preferences.
+        Return a dictionary with language as the key, and a tuple of title description as the value.
+        Don't return anything else (note, warning or initialisation).
+    '''
+    caption_output = gemini(proper_prompt)
+    gemini_image_prompts = '''
+        Generate prompt to feed to image generator for generating advertisment. User requirements are given in prompt as {prompt}.
+        Generate seperate prompts for languages in {languages}. Make sure to capture cultural nuances, and regional preferences through the prompt.
+        Return a dictionary with language as the key, and prompt as the value.
+        Don't return anything else (note, warning or initialisation).
+    '''
+    image_prompt = gemini(gemini_image_prompt)
+    image_output = image(gemini_prompt)
+    captions = format_captions(caption_output)
+
+    return (image_output, captions)
