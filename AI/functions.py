@@ -106,8 +106,8 @@ class AdvertisementGenerator:
         # Keep Llama URL for future use
         self.llama_url = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct"
         # Stable Diffusion for image generation
-        self.stable_diffusion_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-
+        self.stable_diffusion_url = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4"
+        
         # Configure Gemini
         genai.configure(api_key=gemini_api_key)
         self.gemini_model = genai.GenerativeModel(model_name="gemini-1.5-flash")
@@ -125,27 +125,40 @@ class AdvertisementGenerator:
             1. Title (short and catchy)
             2. Description (compelling and detailed)
             
-            Return the result as a Python dictionary where:
-            - Keys are language names
-            - Values are tuples of (title, description)
-            
-            Format: {{"language": ("title", "description"), ...}}
+            Return ONLY a valid Python dictionary in this exact format, nothing else:
+            {{"English": ("English Title", "English Description"), 
+            "Hindi": ("Hindi Title", "Hindi Description"),
+            "Marathi": ("Marathi Title", "Marathi Description")}}
             """
 
             response = self.gemini_model.generate_content(formatted_prompt)
-            content = ast.literal_eval(response.text)
-
+            
+            # Clean the response text
+            response_text = response.text.strip()
+            # Remove any markdown code block indicators if present
+            response_text = response_text.replace("```python", "").replace("```", "").strip()
+            
+            try:
+                content = ast.literal_eval(response_text)
+            except Exception as parse_error:
+                logger.error(f"Failed to parse response: {response_text}")
+                # Fallback content creation
+                content = {}
+                for lang in languages:
+                    content[lang] = (f"Default Title in {lang}", f"Default Description in {lang}")
+            
             # Validate the response format
             for lang in languages:
                 if lang not in content:
-                    raise ValueError(f"Missing content for language: {lang}")
+                    content[lang] = (f"Default Title in {lang}", f"Default Description in {lang}")
                 if not isinstance(content[lang], tuple) or len(content[lang]) != 2:
-                    raise ValueError(f"Invalid content format for language: {lang}")
-
+                    content[lang] = (f"Default Title in {lang}", f"Default Description in {lang}")
+                    
             return content
         except Exception as e:
             logger.error(f"Error generating multilingual content: {e}")
-            raise
+            # Return default content instead of raising
+            return {lang: (f"Default Title in {lang}", f"Default Description in {lang}") for lang in languages}
 
     def generate_image_prompts(
         self, base_prompt: str, languages: List[str]
@@ -156,20 +169,37 @@ class AdvertisementGenerator:
             Create image generation prompts for an advertisement in different languages: {', '.join(languages)}
             Base advertisement concept: {base_prompt}
             
-            For each language, create a detailed image prompt that:
-            1. Incorporates cultural elements specific to speakers of that language
-            2. Maintains the core advertising message
-            3. Is optimized for Stable Diffusion image generation
-            
-            Return as a Python dictionary: {{"language": "image prompt", ...}}
+            Return ONLY a valid Python dictionary in this exact format, nothing else:
+            {{"English": "detailed prompt for English ad",
+            "Hindi": "detailed prompt for Hindi ad",
+            "Marathi": "detailed prompt for Marathi ad"}}
             """
 
             response = self.gemini_model.generate_content(prompt)
-            prompts = ast.literal_eval(response.text)
+            
+            # Clean the response text
+            response_text = response.text.strip()
+            response_text = response_text.replace("```python", "").replace("```", "").strip()
+            
+            try:
+                prompts = ast.literal_eval(response_text)
+            except Exception as parse_error:
+                logger.error(f"Failed to parse image prompts: {response_text}")
+                # Fallback prompt creation
+                prompts = {}
+                for lang in languages:
+                    prompts[lang] = f"Advertisement for {base_prompt} in {lang} style"
+            
+            # Ensure all languages have prompts
+            for lang in languages:
+                if lang not in prompts:
+                    prompts[lang] = f"Advertisement for {base_prompt} in {lang} style"
+                    
             return prompts
         except Exception as e:
             logger.error(f"Error generating image prompts: {e}")
-            raise
+            # Return default prompts instead of raising
+            return {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
 
     def generate_image(self, prompt: str) -> bytes:
         """Generate image using Stable Diffusion."""
