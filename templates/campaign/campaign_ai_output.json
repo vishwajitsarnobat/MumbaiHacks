@@ -1,31 +1,50 @@
 {
-  "budget_amount_micros": 50000000,
-  "name": "Unique name for the campaign",
-  "network_settings": {
-    "target_google_search": true,
-    "target_search_network": false,
-    "target_content_network": false,
-    "target_partner_search_network": false
-  },
-  "locations": ["", ""],
-  "details": {
-    "language1": {
-      "amount_allocated": 500,
-      "amount_cpc": 5000
+  "campaign_data": {
+    "budget_amount_micros": 50000000,
+    "name": "Unique name for the campaign",
+    "network_settings": {
+      "target_google_search": true,
+      "target_search_network": false,
+      "target_content_network": false,
+      "target_partner_search_network": false
     },
-    "language2": {
-      "amount_allocated": 500,
-      "amount_cpc": 5000
+    "locations": ["", ""],
+    "details": {
+      "language1": {
+        "amount_allocated": 500,
+        "amount_cpc": 5000
+      },
+      "language2": {
+        "amount_allocated": 500,
+        "amount_cpc": 5000
+      }
     }
   },
-  "explanations": [
+  "campaign_type": [
     {
-      "title": "title",
-      "explanation": "explanation"
+      "type": "SEARCH",
+      "compatible_ad_group_types": ["SEARCH_STANDARD"]
     },
     {
-      "title": "title",
-      "explanation": "explanation"
+      "type": "DISPLAY",
+      "compatible_ad_group_types": ["DISPLAY_STANDARD"]
+    },
+    {
+      "type": "SHOPPING",
+      "compatible_ad_group_types": ["SHOPPING_PRODUCT_ADS"]
+    },
+    {
+      "type": "SMART",
+      "compatible_ad_group_types": ["SMART_CAMPAIGN_ADS"]
+    }
+  ],
+
+  "explanations": [
+    {
+      "title1": "explanation1"
+    },
+    {
+      "title2": "explanation2"
     }
   ]
 }

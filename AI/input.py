@@ -33,6 +33,7 @@ async def fill_template(input_json):
             f"you need to make the campaign the most successful it can be. don't give me the input I sent you again"
             f" in output. and dont format the output. replace title in explanations with the title of what youre explaining and explanation with your explanation "
             f"and replace the language with language your allocating the budget too. make it optimal, the budget being {input_json['budget_amount_micros']}"
+            f"choose any one campaign_type from the given array."
         )
         # budget allocation
         response = model.generate_content(formatted_input)
