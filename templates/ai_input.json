@@ -1,6 +1,5 @@
 {
     prompt: "poster for a ad for promoting my resturant",
-    {% comment %} contains things like purpose,age,slogans and specifiers like meme to use etc {% endcomment %}
     languages: ["English","hindi"],
     type: ["Ad","Post"],
     locations: []
