@@ -1,0 +1,31 @@
+{
+  "budget_amount_micros": 50000000,
+  "name": "Unique name for the campaign",
+  "network_settings": {
+    "target_google_search": true,
+    "target_search_network": false,
+    "target_content_network": false,
+    "target_partner_search_network": false
+  },
+  "locations": ["", ""],
+  "details": {
+    "language1": {
+      "amount_allocated": 500,
+      "amount_cpc": 5000
+    },
+    "language2": {
+      "amount_allocated": 500,
+      "amount_cpc": 5000
+    }
+  },
+  "explanations": [
+    {
+      "title": "title",
+      "explanation": "explanation"
+    },
+    {
+      "title": "title",
+      "explanation": "explanation"
+    }
+  ]
+}

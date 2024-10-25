@@ -2,13 +2,12 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
-import json
 from functions import get_details
 
 # Load the API key from the .env file
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY_YEET")
-with open("sample.json", "r") as file:
+with open("../templates/campaign/campaign_ai_output.json", "r") as file:
     template_json = json.load(file)
 template_json_str = json.dumps(template_json, indent=4)
 model_name = "gemini-1.5-flash"
@@ -30,13 +29,16 @@ async def fill_template(input_json):
             f"the user has also provided a json template which you need to fill as a json"
             f"Template: {template_json_str}\n\n"
             f"remember, Don't write anything extra not present in template and fill everything in template"
-            f"Fill the fields keeping in mind the locations and languages the user, eg if target is mumbai, use keywords like in mumbai"
-            f" wants to target, making the campaign the most successful it can be. don't give me the input I sent you again"
+            f"Fill the fields keeping in mind the locations and languages the user, eg if target is mumbai, use keywords like in mumbai."
+            f"you need to make the campaign the most successful it can be. don't give me the input I sent you again"
             f" in output. and dont format the output. replace title in explanations with the title of what youre explaining and explanation with your explanation "
+            f"and replace the language with language your allocating the budget too. make it optimal, the budget being {input_json['budget_amount_micros']}"
         )
+        # budget allocation
         response = model.generate_content(formatted_input)
 
         if response:  # location,age,lang,prompt
+            print(response.text)
             json_str = json.loads(response.text)
 
             # targeting=json_str["required_inputs"]["targeting"]
@@ -64,6 +66,7 @@ if __name__ == "__main__":
         "languages": ["English", "Hindi"],
         "type": ["Ad", "Post"],
         "locations": ["Maharashtra", "ahmendabad"],
+        "budget_amount_micros": 50000000,
     }
 
     async def main():

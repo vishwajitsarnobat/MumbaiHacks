@@ -3,5 +3,6 @@
     "languages": ["English","hindi"],
     "type": ["Ad","Post"],
     "locations": ["mumbai","kurla"],
+    "budget":555
     {% comment %} location only used for targeting, not generating multiple prompt {% endcomment %}
 }

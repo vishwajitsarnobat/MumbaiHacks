@@ -57,6 +57,6 @@
           "Third-party tracking"
         ]
       },
-      "explanations":[{"title":"explanation"},{"title":"explanation"}]
+      "explanations":[{"title":"title","explanation":"explanation"},{"title":"title","explanation":"explanation"}]
     }
   }

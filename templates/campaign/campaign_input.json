@@ -1,0 +1,7 @@
+{
+    "budget_amount_micros": 50000000,
+    "locations": ["",""],  # state or city
+    "languages": ["",""],    # Example: English
+    "type":["ad","post"],
+    "prompt":""
+}

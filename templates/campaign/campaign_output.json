@@ -1,0 +1,29 @@
+{
+    #user
+    "budget_amount_micros": 50000000,
+
+    #yeet
+    "name": "Unique name for the campaign",
+    "network_settings": {
+        "target_google_search": True,
+        "target_search_network": False,
+        "target_content_network": False,
+        "target_partner_search_network": False
+    },
+    "locations": ["",""],  # state or city
+    "details": ["language":{
+        
+        "amount_allocated":500,
+        "amount_cpc": 5000,
+
+
+
+        #vishwwajit
+        "title":"",
+        description:"",
+        image:"",
+    }],
+    "explanations": [
+    "title":"explanation"
+    ]
+}
