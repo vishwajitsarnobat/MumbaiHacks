@@ -74,9 +74,6 @@
 #         img = image(prompts[language])
 #         output[language].add(img)
 #     return output
-def get_details():
-    "test"
-
 
 import requests
 import google.generativeai as genai
@@ -92,13 +89,11 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class AdvertisementContent:
     title: str
     description: str
     image: bytes
-
 
 class AdvertisementGenerator:
     def __init__(self, hf_api_key: str, gemini_api_key: str):
@@ -126,9 +121,7 @@ class AdvertisementGenerator:
             2. Description (compelling and detailed)
             
             Return ONLY a valid Python dictionary in this exact format, nothing else:
-            {{"English": ("English Title", "English Description"), 
-            "Hindi": ("Hindi Title", "Hindi Description"),
-            "Marathi": ("Marathi Title", "Marathi Description")}}
+            Dictionary with all languages in {languages} as the keys, and tuple of (title, description) as the value.
             """
 
             response = self.gemini_model.generate_content(formatted_prompt)
@@ -170,9 +163,8 @@ class AdvertisementGenerator:
             Base advertisement concept: {base_prompt}
             
             Return ONLY a valid Python dictionary in this exact format, nothing else:
-            {{"English": "detailed prompt for English ad",
-            "Hindi": "detailed prompt for Hindi ad",
-            "Marathi": "detailed prompt for Marathi ad"}}
+            Dictionary with all languages in {languages} as the keys, and prompt as the value.
+            Make sure to include cultural nuances and regional preferences in the prompt which will make the image locally unique.
             """
 
             response = self.gemini_model.generate_content(prompt)
@@ -293,7 +285,7 @@ def main():
     # Example usage
     try:
         generator = AdvertisementGenerator(
-            hf_api_key=os.getenv("HF_API_TOKEN"),
+            hf_api_key="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",
             gemini_api_key="AIzaSyDj97xwlHatiROdoV8B0C5BOhJhnSe85Dk",
         )
 
@@ -317,7 +309,6 @@ def main():
 
     except Exception as e:
         logger.error(f"Error in main: {e}")
-
 
 if __name__ == "__main__":
     main()
