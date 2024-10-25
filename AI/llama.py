@@ -1,10 +1,8 @@
 import requests
 
-# Define the API endpoint and add your Hugging Face API token
 API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct"  
 headers = {"Authorization": "Bearer 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"}
 
-# Define the function to send a query to the LLaMA model
 def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()  # Assuming text output; adjust based on response
