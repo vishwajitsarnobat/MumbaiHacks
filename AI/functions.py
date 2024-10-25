@@ -7,7 +7,7 @@
 # headers = {"Authorization": "Bearer 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"}
 
 # def llama():
-#     API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct" 
+#     API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct"
 #     payload = {
 #         "inputs": '''Here is a compelling content for an advertisement promoting Yateen's Kitchen, a popular shop selling desserts in Mumbai with a special Diwali discount:\n''',
 #         "parameters": {
@@ -45,14 +45,14 @@
 
 # # Overall workflow
 # '''
-# location, age, languages, prompt 
+# location, age, languages, prompt
 # array, string, array, string
 # outputs: {"language":(title, description, image)} # this is dictionary with language as key and tuple of (title, description, image) as value
 # '''
 # def get_details(location, age, languages, prompt):
 #     proper_prompt = '''Generate advertisement caption / content for the given prompt by the user.
 #         The user requirements are given in the prompt as {prompt}.
-#         The output should be based on the locations {location} targeting {age} age group, 
+#         The output should be based on the locations {location} targeting {age} age group,
 #         and in {languages} languages to capture cultural nuances, and regional preferences.
 #         Return a dictionary with language as the key, and a tuple of title description as the value.
 #         Don't return anything else (note, warning or initialisation).
@@ -74,6 +74,8 @@
 #         img = image(prompts[language])
 #         output[language].add(img)
 #     return output
+def get_details():
+    "test"
 
 
 import requests
@@ -90,11 +92,13 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class AdvertisementContent:
     title: str
     description: str
     image: bytes
+
 
 class AdvertisementGenerator:
     def __init__(self, hf_api_key: str, gemini_api_key: str):
@@ -103,12 +107,14 @@ class AdvertisementGenerator:
         self.llama_url = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct"
         # Stable Diffusion for image generation
         self.stable_diffusion_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-        
+
         # Configure Gemini
         genai.configure(api_key=gemini_api_key)
         self.gemini_model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-    def generate_multilingual_content(self, prompt: str, languages: List[str]) -> Dict[str, Tuple[str, str]]:
+    def generate_multilingual_content(
+        self, prompt: str, languages: List[str]
+    ) -> Dict[str, Tuple[str, str]]:
         """Generate multilingual content using Gemini."""
         try:
             formatted_prompt = f"""
@@ -125,23 +131,25 @@ class AdvertisementGenerator:
             
             Format: {{"language": ("title", "description"), ...}}
             """
-            
+
             response = self.gemini_model.generate_content(formatted_prompt)
             content = ast.literal_eval(response.text)
-            
+
             # Validate the response format
             for lang in languages:
                 if lang not in content:
                     raise ValueError(f"Missing content for language: {lang}")
                 if not isinstance(content[lang], tuple) or len(content[lang]) != 2:
                     raise ValueError(f"Invalid content format for language: {lang}")
-                    
+
             return content
         except Exception as e:
             logger.error(f"Error generating multilingual content: {e}")
             raise
 
-    def generate_image_prompts(self, base_prompt: str, languages: List[str]) -> Dict[str, str]:
+    def generate_image_prompts(
+        self, base_prompt: str, languages: List[str]
+    ) -> Dict[str, str]:
         """Generate culturally appropriate image prompts using Gemini."""
         try:
             prompt = f"""
@@ -155,7 +163,7 @@ class AdvertisementGenerator:
             
             Return as a Python dictionary: {{"language": "image prompt", ...}}
             """
-            
+
             response = self.gemini_model.generate_content(prompt)
             prompts = ast.literal_eval(response.text)
             return prompts
@@ -168,9 +176,7 @@ class AdvertisementGenerator:
         try:
             payload = {"inputs": prompt}
             response = requests.post(
-                self.stable_diffusion_url, 
-                headers=self.hf_headers, 
-                json=payload
+                self.stable_diffusion_url, headers=self.hf_headers, json=payload
             )
             response.raise_for_status()
             return response.content
@@ -179,21 +185,17 @@ class AdvertisementGenerator:
             raise
 
     def get_advertisement_details(
-        self,
-        locations: List[str],
-        age: str,
-        languages: List[str],
-        prompt: str
+        self, locations: List[str], age: str, languages: List[str], prompt: str
     ) -> Dict[str, AdvertisementContent]:
         """
         Generate multilingual advertisement content including text and images.
-        
+
         Args:
             locations: List of target locations
             age: Target age group
             languages: List of target languages
             prompt: Advertisement requirements
-            
+
         Returns:
             Dictionary mapping languages to AdvertisementContent objects
         """
@@ -208,7 +210,9 @@ class AdvertisementGenerator:
             """
 
             # Generate multilingual text content using Gemini
-            text_content = self.generate_multilingual_content(enhanced_prompt, languages)
+            text_content = self.generate_multilingual_content(
+                enhanced_prompt, languages
+            )
 
             # Generate culturally appropriate image prompts
             image_prompts = self.generate_image_prompts(enhanced_prompt, languages)
@@ -220,9 +224,7 @@ class AdvertisementGenerator:
                     title, description = text_content[language]
                     image_data = self.generate_image(image_prompts[language])
                     output[language] = AdvertisementContent(
-                        title=title,
-                        description=description,
-                        image=image_data
+                        title=title, description=description, image=image_data
                     )
                 except Exception as e:
                     logger.error(f"Error processing language {language}: {e}")
@@ -244,29 +246,32 @@ class AdvertisementGenerator:
                     "max_new_tokens": 100,
                     "temperature": 0.7,
                     "top_p": 0.9,
-                    "do_sample": True
-                }
+                    "do_sample": True,
+                },
             }
-            response = requests.post(self.llama_url, headers=self.hf_headers, json=payload)
+            response = requests.post(
+                self.llama_url, headers=self.hf_headers, json=payload
+            )
             response.raise_for_status()
             return response.json()[0]["generated_text"]
         except Exception as e:
             logger.error(f"Error generating Llama content: {e}")
             raise
 
+
 def main():
     # Example usage
     try:
         generator = AdvertisementGenerator(
             hf_api_key=os.getenv("HF_API_TOKEN"),
-            gemini_api_key='AIzaSyDj97xwlHatiROdoV8B0C5BOhJhnSe85Dk'
+            gemini_api_key="AIzaSyDj97xwlHatiROdoV8B0C5BOhJhnSe85Dk",
         )
 
         result = generator.get_advertisement_details(
             locations=["Mumbai"],
             age="25-35",
             languages=["English", "Hindi", "Marathi"],
-            prompt="Promote Yateen's Kitchen dessert shop with special Diwali discount offering traditional sweets"
+            prompt="Promote Yateen's Kitchen dessert shop with special Diwali discount offering traditional sweets",
         )
 
         # Process and save results
@@ -274,7 +279,7 @@ def main():
             logger.info(f"\nLanguage: {language}")
             logger.info(f"Title: {content.title}")
             logger.info(f"Description: {content.description}")
-            
+
             # Save image with language-specific filename
             img = Image.open(io.BytesIO(content.image))
             img.save(f"ad_image_{language.lower()}.png")
@@ -282,6 +287,7 @@ def main():
 
     except Exception as e:
         logger.error(f"Error in main: {e}")
+
 
 if __name__ == "__main__":
     main()
