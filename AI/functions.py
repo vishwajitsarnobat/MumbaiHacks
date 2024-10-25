@@ -84,6 +84,7 @@ from dataclasses import dataclass
 from PIL import Image
 import io
 import logging
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -155,44 +156,46 @@ class AdvertisementGenerator:
 
     def generate_image_prompts(
         self, base_prompt: str, languages: List[str]
-    ) -> Dict[str, str]:
+        ) -> Dict[str, str]:
         """Generate culturally appropriate image prompts using Gemini."""
         try:
             prompt = f"""
-            Create image generation prompts for an advertisement in different languages: {', '.join(languages)}
+            Generate image prompts in English for advertisements tailored to different regions in India. Each region's advertisement should be described in English but incorporate cultural and regional nuances unique to that area's language and preferences, so the images feel localized and authentic. 
             Base advertisement concept: {base_prompt}
             
-            Return ONLY a valid Python dictionary in this exact format, nothing else:
-            Dictionary with all languages in {languages} as the keys, and prompt as the value.
-            Make sure to include cultural nuances and regional preferences in the prompt which will make the image locally unique.
+            Return only a dictionary format where each language in {languages} is a key, and the value is the English prompt for that language's regional advertisement. Each prompt should emphasize the cultural elements, holiday traditions, colors, foods, or attire familiar to that language region while aligning with the base advertisement concept.
             """
 
             response = self.gemini_model.generate_content(prompt)
             
-            # Clean the response text
+            # Clean and check response text
             response_text = response.text.strip()
-            response_text = response_text.replace("```python", "").replace("```", "").strip()
-            
+            print(f"Raw image prompt response: {response_text}")  # For debugging
+
+            # Remove any triple backticks and language specifier
+            if response_text.startswith("```") and response_text.endswith("```"):
+                response_text = response_text[3:-3].strip()
+            response_text = response_text.replace("json", "").strip()  # Remove "json" if present
+
             try:
+                # Use ast.literal_eval to safely evaluate the cleaned string as a dictionary
                 prompts = ast.literal_eval(response_text)
             except Exception as parse_error:
-                logger.error(f"Failed to parse image prompts: {response_text}")
-                # Fallback prompt creation
-                prompts = {}
-                for lang in languages:
-                    prompts[lang] = f"Advertisement for {base_prompt} in {lang} style"
-            
+                logger.error(f"Failed to parse image prompts with ast.literal_eval: {parse_error}")
+                # Fallback: Generate a default dictionary if parsing fails
+                prompts = {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
+
             # Ensure all languages have prompts
             for lang in languages:
                 if lang not in prompts:
                     prompts[lang] = f"Advertisement for {base_prompt} in {lang} style"
                     
             return prompts
+
         except Exception as e:
             logger.error(f"Error generating image prompts: {e}")
             # Return default prompts instead of raising
             return {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
-
     def generate_image(self, prompt: str) -> bytes:
         """Generate image using Stable Diffusion."""
         try:
