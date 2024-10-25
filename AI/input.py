@@ -1,42 +1,57 @@
 import os
 import json
-import httpx
+import google.generativeai as genai
 from dotenv import load_dotenv
+import json
+from functions import get_details
 
 # Load the API key from the .env file
 load_dotenv()
-LLAMA_API_KEY = os.getenv("LLAMA_API")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY_YEET")
+with open("sample.json", "r") as file:
+    template_json = json.load(file)
+template_json_str = json.dumps(template_json, indent=4)
+model_name = "gemini-1.5-flash"
+
+# Configure the Gemini API
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel(model_name=model_name)
 
 
-# Function to fill template using Llama API asynchronously
-async def fill_template(input_json, template_json):
-    url = "https://api-inference.huggingface.co/models/your-model-id"  # Replace with your model ID
-    headers = {
-        "Authorization": f"Bearer {LLAMA_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    formatted_input = (
-        f"Fill the following template based on the requirements:\n\n"
-        f"Prompt: {input_json['prompt']}\n"
-        f"Languages: {', '.join(input_json['languages'])}\n"
-        f"Type: {', '.join(input_json['type'])}\n"
-        f"Locations: {', '.join(input_json['locations'])}\n\n"
-        f"Template: {json.dumps(template_json, indent=4)}\n\n"
-        f"Output the result as a JSON formatted according to the template."
-    )
-    payload = {"inputs": formatted_input}
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print("Error:", response.status_code, response.text)
-        return None
+# Function to fill template using Gemini API asynchronously
+async def fill_template(input_json):
+    for type in input_json["type"]:
+        formatted_input = (
+            f"You are a marketing campaign manager. The user gave the following details:\n\n"
+            f"the user wants to {input_json['prompt']}\n"
+            f"the user wants a campaign for this type {type}\n"
+            f"the user wants to target these locations in his campaign {', '.join(input_json['locations'])}\n\n"
+            f"the user wants to target these languages in his campaign {', '.join(input_json['languages'])}\n\n"
+            f"the user has also provided a json template which you need to fill as a json"
+            f"Template: {template_json_str}\n\n"
+            f"remember, Don't write anything extra not present in template and fill everything in template"
+            f"Fill the fields keeping in mind the locations and languages the user"
+            f" wants to target, making the campaign the most successful it can be. don't give me the input I sent you again"
+            f" in output. and dont format the output. replace title in explanations with the title of what youre explaining and explanation with your explanation "
+        )
+        response = model.generate_content(formatted_input)
+
+        if response:  # location,age,lang,prompt
+            json_str = json.loads(response.text)
+
+            # targeting=json_str["required_inputs"]["targeting"]
+            # details=get_details(targeting["locations"],targeting["age_group"],targeting["languages"],input_json['prompt'])
+            # #{"language":(title,description,image)}
+            # json_str["details"]=details
+            return json_str
+        else:
+            print("Error: No response from Gemini API")
+            return None
 
 
 # Function to process input and return filled template
-async def send_input(input_json, template_json):
-    filled_template = await fill_template(input_json, template_json)
+async def send_input(input_json):
+    filled_template = await fill_template(input_json)
     return filled_template
 
 
@@ -51,17 +66,8 @@ if __name__ == "__main__":
         "locations": ["Mumbai", "Kurla"],
     }
 
-    template_json = {
-        # Example template structure
-        "title": "",
-        "description": "",
-        "language": "",
-        "type": "",
-        "location": "",
-    }
-
     async def main():
-        result = await send_input(input_json, template_json)
-        print(json.dumps(result, indent=4))
+        result = await send_input(input_json)
+        print(result)
 
     asyncio.run(main())

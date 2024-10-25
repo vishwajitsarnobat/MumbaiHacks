@@ -1,0 +1,62 @@
+{
+    "campaign_type": "Search",
+    "required_inputs": {
+      "campaign_name": "Unique name for the campaign",
+      "objective": [
+        "Sales",
+        "Leads",
+        "Website Traffic"
+      ],
+      "budget": {
+        "daily_budget": "Amount to spend per day"
+      },
+      "bidding_strategy": [
+        "Manual CPC",
+        "Enhanced CPC",
+        "Maximize Clicks",
+        "Maximize Conversions",
+        "Target CPA",
+        "Target ROAS"
+      ],
+      "targeting": {
+        "locations": ["Geographic locations to target"],
+        "languages": ["Languages of target audience"],
+        "age_group":""
+      },
+      "ad_schedule": "Days and times to show ads",
+      "ad_groups": [
+        {
+          "ad_group_name": "Unique name for each ad group",
+          "keywords": [
+            "List of keywords relevant to the campaign"
+          ],
+          "match_types": [
+            "Broad Match",
+            "Phrase Match",
+            "Exact Match"
+          ]
+        
+        }
+      ],
+      "ad_extensions": [
+        "Sitelink Extensions",
+        "Callout Extensions",
+        "Structured Snippets",
+        "Call Extensions"
+      ],
+      "conversion_tracking": {
+        "conversion_actions": [
+          "Purchases",
+          "Sign-ups",
+          "Calls",
+          "Other conversions"
+        ],
+        "tracking_method": [
+          "Google Tag",
+          "Google Analytics",
+          "Third-party tracking"
+        ]
+      },
+      "explanations":[{"title":"explanation"},{"title":"explanation"}]
+    }
+  }
