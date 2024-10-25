@@ -1,0 +1,16 @@
+{
+    "name": "Unique name for the campaign",
+    "amount_cpc": 5000,
+    "budget_amount_micros": 50000000,
+    "network_settings": {
+        "target_google_search": True,
+        "target_search_network": False,
+        "target_content_network": False,
+        "target_partner_search_network": False
+    },
+    "locations": [2840],  # state or city
+    "languages": [1000],    # Example: English
+    "conversion_goals": "Account-default",
+    "customer_acquisition": "Bid equally for new and existing customers",
+    "marketing_objective": None,  # No marketing objective selected
+}

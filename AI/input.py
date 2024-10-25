@@ -25,7 +25,7 @@ async def fill_template(input_json):
             f"You are a marketing campaign manager. The user gave the following details:\n\n"
             f"the user wants to {input_json['prompt']}\n"
             f"the user wants a campaign for this type {type}\n"
-            f"the user wants to target these locations in his campaign {', '.join(input_json['locations'])}\n\n"
+            f"the user wants to know which locations would be best to target in this region {', '.join(input_json['locations'])}\n\n"
             f"the user wants to target these languages in his campaign {', '.join(input_json['languages'])}\n\n"
             f"the user has also provided a json template which you need to fill as a json"
             f"Template: {template_json_str}\n\n"
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         "prompt": "poster for an ad for promoting my restaurant",
         "languages": ["English", "Hindi"],
         "type": ["Ad", "Post"],
-        "locations": ["Mumbai", "Kurla"],
+        "locations": ["Maharashtra"],
     }
 
     async def main():
