@@ -30,7 +30,7 @@ async def fill_template(input_json):
             f"the user has also provided a json template which you need to fill as a json"
             f"Template: {template_json_str}\n\n"
             f"remember, Don't write anything extra not present in template and fill everything in template"
-            f"Fill the fields keeping in mind the locations and languages the user"
+            f"Fill the fields keeping in mind the locations and languages the user, eg if target is mumbai, use keywords like in mumbai"
             f" wants to target, making the campaign the most successful it can be. don't give me the input I sent you again"
             f" in output. and dont format the output. replace title in explanations with the title of what youre explaining and explanation with your explanation "
         )
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         "prompt": "poster for an ad for promoting my restaurant",
         "languages": ["English", "Hindi"],
         "type": ["Ad", "Post"],
-        "locations": ["Maharashtra"],
+        "locations": ["Maharashtra", "ahmendabad"],
     }
 
     async def main():
