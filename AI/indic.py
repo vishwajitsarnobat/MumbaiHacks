@@ -1,40 +1,26 @@
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+import requests
 
-# Load the IndicTrans2 model and tokenizer
-model_name = "ai4bharat/indictrans2-en-indic-1B"  # English to Indic languages model
-model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+# Define the API endpoint and add your Hugging Face API token
+API_URL = "https://api-inference.huggingface.co/models/ai4bharat/indictrans2-en-indic-1B"  # Example for English to Hindi
+headers = {"Authorization": "Bearer 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"}
 
-# Define a function to translate text
-def translate_text(text, src_lang="en", tgt_lang="hi"):
-    # Format the input text for translation
-    formatted_text = f"Translate {src_lang} to {tgt_lang}: {text}"
+# Define the function to send a query to the IndicTrans model
+def translate_text(text, target_language="hi"):
+    # Update API URL based on target language if different models exist per language
+    # For multi-language support, you may use a combined model, if available, or route to different endpoints
     
-    # Tokenize the input and generate the translation
-    inputs = tokenizer(formatted_text, return_tensors="pt", padding=True)
-    translated_tokens = model.generate(**inputs)
+    payload = {
+        "inputs": '''Indulge in Delicious Desserts this Diwali with Yateen's Kitchen!\n\n
+        Get Ready to Treat Your Taste Buds with our Wide Range of Mouth-Watering Desserts at Unbeatable Prices!'''
+    }
     
-    # Decode the translated tokens to text
-    translated_text = tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
-    return translated_text
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()
 
-# Sample text to be translated
-ad_text = "Discover our latest fashion collection, crafted just for you!"
+# Example text to translate
+text_to_translate = "Welcome to Yateen's Kitchen! We are offering special discounts on desserts this Diwali."
+target_language = "hi"  # Set to your desired language code
 
-# Translate into different Indian languages
-languages = {
-    "Hindi": "hi",
-    "Bengali": "bn",
-    "Marathi": "mr",
-    "Tamil": "ta",
-    "Telugu": "te",
-    "Kannada": "kn",
-    "Malayalam": "ml",
-    "Gujarati": "gu",
-    "Punjabi": "pa"
-}
-
-# Perform translations
-for language_name, lang_code in languages.items():
-    translated_text = translate_text(ad_text, src_lang="en", tgt_lang=lang_code)
-    print(f"{language_name} Translation: {translated_text}")
+# Translate and display the result
+translated_response = translate_text(text_to_translate, target_language)
+print(translated_response)
