@@ -1,0 +1,61 @@
+
+
+
+
+
+
+
+{
+    "campaign": {
+        "name": "20",
+        //status": "ENABLED",
+        "advertising_channel_type": "SEARCH",
+        "manual_cpc": true,
+        "budget_amount_micros": 50000000,
+        "delivery_method": "STANDARD",
+        "network_settings": {
+            "target_google_search": true,
+            "target_search_network": false,
+            "target_content_network": false,
+            "target_partner_search_network": false
+        },
+        "locations": [],
+        "languages": [1000],
+        //"conversion_goals": "Account-default",
+        "customer_acquisition": true or false,
+       * "marketing_objective": null,
+        "start_date": "2024-10-26",
+        //start today. end llama
+        "end_date": null
+    },
+    "ad_group": {
+        "name": "20",
+       // "status": "ENABLED",
+        "ad_group_type": "SEARCH_STANDARD",
+        "cpc_bid_micros": 10000000
+    },
+    "ad": {
+        ####"final_url": "https://eg.com",
+        "headlines": [
+            "Headline 1 testing",
+            "Headline 2 testing",
+            "Headline 3 testing"
+        ],
+        "descriptions": [
+            "Desc 1 testing",
+            "Desc 2 testing"
+        ],
+        * "path1": "all-inclusive",
+        * "path2": "deals",
+        "images": [
+            "/home/falcon/Projects/MumbaiHacks/Server/GoogleAds/image.jpeg"
+        ],
+        *"customizer_attribute_name": null
+    }
+}summary
+
+{
+    campaign:[{}]
+    summary: ""//html. campign why, benefits. summary must have: language, name, budget
+
+}

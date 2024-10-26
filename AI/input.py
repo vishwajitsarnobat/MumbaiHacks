@@ -2,7 +2,7 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
-# from functions import get_details
+from functions import generate_ad_content
 
 # Load the API key from the .env file
 load_dotenv()
@@ -36,16 +36,23 @@ async def fill_template(input_json):
             f"choose any one campaign_type from the given array."
         )
         # budget allocation
+
         response = model.generate_content(formatted_input)
 
         if response:  # location,age,lang,prompt
             print(response.text)
             json_str = json.loads(response.text)
 
-            # targeting=json_str["required_inputs"]["targeting"]
-            # details=get_details(targeting["locations"],targeting["age_group"],targeting["languages"],input_json['prompt'])
-            # #{"language":(title,description,image)}
-            # json_str["details"]=details
+            targeting = json_str["campaign_data"]
+            (status, details) = generate_ad_content(
+                targeting["locations"],
+                targeting["age_group"],
+                input_json["languages"],
+                input_json["prompt"],
+            )
+            # {"language":(title,description,image)}
+            if status:
+                json_str["details"] = details
             return json_str
         else:
             print("Error: No response from Gemini API")
@@ -64,7 +71,7 @@ if __name__ == "__main__":
 
     input_json = {
         "prompt": "poster for an ad for promoting my restaurant",
-        "languages": ["English", "Hindi"],
+        "languages": ["English"],
         "type": ["Ad", "Post"],
         "locations": ["Maharashtra", "ahmendabad"],
         "budget_amount_micros": 50000000,
