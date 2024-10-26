@@ -21,7 +21,6 @@ model = genai.GenerativeModel(model_name=model_name)
 # Function to fill template using Gemini API asynchronously
 async def fill_template(input_json):
     start_date = datetime.today().strftime("%Y-%m-%d")
-    output_json = {}
 
     formatted_input = (
         f"You are a marketing campaign manager. The user gave the following details:\n\n"
