@@ -145,70 +145,70 @@ class AdvertisementGenerator:
             logger.error(f"Error generating image: {e}")
             raise
 
-    def generate_advertisements(
-        locations: List[str],
-        age: str,
-        languages: List[str],
-        prompt: str,
-        hf_api_key: str = None,
-        gemini_api_key: str = None,
-        save_images: bool = False,
-        output_dir: str = None
-    ) -> Dict[str, Dict]:
-        """
-        Generate advertisements based on given parameters.
-        
-        Args:
-            locations (List[str]): List of target locations
-            age (str): Target age group
-            languages (List[str]): List of target languages
-            prompt (str): Advertisement requirements
-            hf_api_key (str, optional): HuggingFace API key
-            gemini_api_key (str, optional): Gemini API key
-            save_images (bool, optional): Whether to save generated images to disk
-            output_dir (str, optional): Directory to save images if save_images is True
-        
-        Returns:
-            Dict[str, Dict]: Dictionary with language keys and advertisement content values
-        """
-        try:
-            # Initialize the generator
-            generator = AdvertisementGenerator(
-                hf_api_key=hf_api_key,
-                gemini_api_key=gemini_api_key
-            )
+def generate_advertisements(
+    locations: List[str],
+    age: str,
+    languages: List[str],
+    prompt: str,
+    hf_api_key: str = None,
+    gemini_api_key: str = None,
+    save_images: bool = False,
+    output_dir: str = None
+) -> Dict[str, Dict]:
+    """
+    Generate advertisements based on given parameters.
+    
+    Args:
+        locations (List[str]): List of target locations
+        age (str): Target age group
+        languages (List[str]): List of target languages
+        prompt (str): Advertisement requirements
+        hf_api_key (str, optional): HuggingFace API key
+        gemini_api_key (str, optional): Gemini API key
+        save_images (bool, optional): Whether to save generated images to disk
+        output_dir (str, optional): Directory to save images if save_images is True
+    
+    Returns:
+        Dict[str, Dict]: Dictionary with language keys and advertisement content values
+    """
+    try:
+        # Initialize the generator
+        generator = AdvertisementGenerator(
+            hf_api_key=hf_api_key,
+            gemini_api_key=gemini_api_key
+        )
 
-            # Generate the advertisements
-            result = generator.get_advertisement_details(
-                locations=locations,
-                age=age,
-                languages=languages,
-                prompt=prompt
-            )
+        # Generate the advertisements
+        result = generator.get_advertisement_details(
+            locations=locations,
+            age=age,
+            languages=languages,
+            prompt=prompt
+        )
 
-            # Convert results to dictionary format
-            output = {}
-            for language, content in result.items():
-                # Convert AdvertisementContent to dictionary
-                output[language] = content.to_dict()
+        # Convert results to dictionary format
+        output = {}
+        for language, content in result.items():
+            # Convert AdvertisementContent to dictionary
+            output[language] = content.to_dict()
+            
+            # Optionally save images
+            if save_images:
+                if output_dir:
+                    os.makedirs(output_dir, exist_ok=True)
+                    image_path = os.path.join(output_dir, f"ad_image_{language.lower()}.png")
+                else:
+                    image_path = f"ad_image_{language.lower()}.png"
                 
-                # Optionally save images
-                if save_images:
-                    if output_dir:
-                        os.makedirs(output_dir, exist_ok=True)
-                        image_path = os.path.join(output_dir, f"ad_image_{language.lower()}.png")
-                    else:
-                        image_path = f"ad_image_{language.lower()}.png"
-                    
-                    img = Image.open(io.BytesIO(content.image))
-                    img.save(image_path)
-                    logger.info(f"Image saved as {image_path}")
+                img = Image.open(io.BytesIO(content.image))
+                img.save(image_path)
+                logger.info(f"Image saved as {image_path}")
 
-            return output
+        return output
 
-        except Exception as e:
-            logger.error(f"Error generating advertisements: {e}")
-            raise
+    except Exception as e:
+        logger.error(f"Error generating advertisements: {e}")
+        raise
 
 # Example usage
 if __name__ == "__main__":
