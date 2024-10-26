@@ -1,27 +1,29 @@
 {
-  campaigns:[
-  "campaign": {
-      "name": "",
-      "advertising_channel_type": "SEARCH",
-      "budget_amount_micros": 000,
-      "network_settings": {
+  "campaigns": [
+    {
+      "campaign": {
+        "name": "",
+        "advertising_channel_type": "SEARCH",
+        "budget_amount_micros": 0,
+        "network_settings": {
           "target_google_search": true,
           "target_search_network": false,
           "target_content_network": false,
           "target_partner_search_network": false
+        },
+        "locations": [""],
+        "languages": ["English"],
+        "conversion_goals": "Account-default",
+        "customer_acquisition": true,
+        "marketing_objective": null,
+        "start_date": "2024-10-26",
+        "end_date": ""
       },
-      "locations": [""],
-      "languages": ["English"],
-      "conversion_goals": "Account-default",
-      "customer_acquisition": true or false,
-      "marketing_objective": null,
-      "start_date": "2024-10-26",
-      "end_date": ""
-  },
-  "ad_group": {
-      "name": "20",
-      "ad_group_type": "SEARCH_STANDARD",
-      "cpc_bid_micros": 000
-  },
-  summary:" "
+      "ad_group": {
+        "name": "20",
+        "ad_group_type": "SEARCH_STANDARD",
+        "cpc_bid_micros": 0
+      }
+    }
+  ]
 }
