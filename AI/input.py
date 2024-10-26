@@ -2,8 +2,9 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
-from functions import generate_ad_content
+from functions import get_advertisement
 from datetime import datetime
+import base64
 
 # Load the API key from the .env file
 load_dotenv()
@@ -18,7 +19,37 @@ genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel(model_name=model_name)
 
 
-# Function to fill template using Gemini API asynchronously
+async def move_outside_content_to_summary(response_text):
+    """
+    Move any content outside the JSON structure into the summary field.
+    """
+    # Find the start and end of the JSON structure
+    json_start = response_text.find("{")
+    json_end = response_text.rfind("}") + 1
+
+    if json_start == -1 or json_end == -1:
+        raise ValueError("No JSON structure found in the response text")
+
+    # Extract JSON and outside content
+    json_content = response_text[json_start:json_end]
+    outside_content = response_text[:json_start] + response_text[json_end:]
+
+    # Parse JSON content
+    try:
+        json_data = json.loads(json_content)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Error decoding JSON: {e}")
+
+    # Move outside content to summary
+    if "summary" in json_data:
+        json_data["summary"] += "\n" + outside_content.strip()
+    else:
+        json_data["summary"] = outside_content.strip()
+
+    return json_data
+
+
+# f"the summary key's value should have details like why were the decisions made, what benefits they will have and must have a itemized list of language in campaign,campaign name and budget alloted"
 async def fill_template(input_json):
     start_date = datetime.today().strftime("%Y-%m-%d")
 
@@ -34,16 +65,37 @@ async def fill_template(input_json):
         f"Fill the fields keeping in mind the locations and languages the user, eg if target is mumbai, use keywords like in mumbai."
         f"you need to make the campaign the most successful it can be."
         f"allocate the budget optimal across all campaigns, the budget being {input_json['budget_amount_micros']}"
-        f"format the summary as json. it should have details like why were the decisions made, what benefits they will have and must have a itemized list of language in campaign,campaign name and budget alloted"
+        f"remember to give all output in json no matter what and no additional fields other than given in template."
+        f"dont give any notes,summary etc"
     )
-    # budget allocation
+
+    # Debugging print
+    print(f"Formatted input: {formatted_input}")
 
     response = model.generate_content(formatted_input)
+    summary = model.generate_content(
+        response.text
+        + "create a summary for this.  should have details like why were the decisions made, what benefits they will have and must have a itemized list of language in campaign,campaign name and budget alloted"
+    )
 
-    if response:  # location,age,lang,prompt
-        print(response.text)
-        json_str = json.loads(response.text)
+    if response:
+        print(f"Response text: {response.text}")  # Debugging print
+        json_str = response.text
+        if json_str.startswith("```json") and json_str.endswith("```"):
+            json_str = json_str[7:-3].strip()
+        try:
+            json_str = await move_outside_content_to_summary(json_str)
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
+            return None
+
         for i in range(len(json_str["campaigns"])):
+            json_str["campaigns"][i]["ad"] = {
+                "final_url": "",
+                "path1": "",
+                "path2": "",
+                "customizer_attribute_name": "",
+            }
             json_str["campaigns"][i]["campaign"]["status"] = "ENABLED"
             json_str["campaigns"][i]["campaign"]["manual_cpc"] = True
             json_str["campaigns"][i]["campaign"]["delivery_method"] = "STANDARD"
@@ -58,27 +110,33 @@ async def fill_template(input_json):
             json_str["campaigns"][i]["ad"]["path2"] = ""
             json_str["campaigns"][i]["ad"]["customizer_attribute_name"] = None
 
-            targeting = json_str["campaign_data"]
-            (status, details) = generate_ad_content(
+            targeting = json_str["campaigns"][i]["campaign"]
+            details = get_advertisement(
                 targeting["locations"],
                 "general public",
                 input_json["languages"],
                 input_json["prompt"],
             )
-            # {"language":([title],[description],image)}
-            if status:
-                for language in details:
-                    input_json["campaigns"]["ad"]["headlines"] = []
-                    input_json["campaigns"]["ad"]["descriptions"][i] = []
-                    input_json["campaigns"]["ad"]["images"][0] = details[language][2]
-                    for i in len(details[language][0]):
-                        input_json["campaigns"]["ad"]["headlines"].push(
-                            details[language][0][i]
-                        )
-                        input_json["campaigns"]["ad"]["descriptions"][i].push(
-                            details[language][1][i]
-                        )
-            return json_str
+            details = {
+                language: (advert.titles, advert.descriptions, advert.image)
+                for language, advert in details.items()
+            }
+            # {"language": ([title], [description], image)}
+
+            for language in details:
+                json_str["campaigns"][i]["ad"]["headlines"] = []
+                json_str["campaigns"][i]["ad"]["descriptions"] = []
+                base64_image = base64.b64encode(details[language][2]).decode("utf-8")
+                json_str["campaigns"][i]["ad"]["images"] = [base64_image]
+                for j in range(len(details[language][0])):
+                    json_str["campaigns"][i]["ad"]["headlines"].append(
+                        details[language][0][j]
+                    )
+                    json_str["campaigns"][i]["ad"]["descriptions"].append(
+                        details[language][1][j]
+                    )
+        json_str["summary"] = summary.text
+        return json_str
     else:
         print("Error: No response from Gemini API")
         return None

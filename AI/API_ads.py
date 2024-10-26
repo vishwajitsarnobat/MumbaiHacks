@@ -6,11 +6,13 @@ from fuzzywuzzy import fuzz
 import uuid
 import requests
 
+
 # Function to load credentials from YAML file
 def load_credentials(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         credentials = yaml.safe_load(file)
     return credentials
+
 
 # Campaign creation function
 def create_campaign(client, customer_id, campaign_data):
@@ -24,14 +26,13 @@ def create_campaign(client, customer_id, campaign_data):
     campaign_budget.name = "Budget for " + campaign_data["name"]
     campaign_budget.delivery_method = getattr(
         client.enums.BudgetDeliveryMethodEnum.BudgetDeliveryMethod,
-        campaign_data["delivery_method"]
+        campaign_data["delivery_method"],
     )
     campaign_budget.amount_micros = campaign_data["budget_amount_micros"]
 
     # Add the budget
     budget_response = campaign_budget_service.mutate_campaign_budgets(
-        customer_id=customer_id,
-        operations=[campaign_budget_operation]
+        customer_id=customer_id, operations=[campaign_budget_operation]
     )
 
     # Create the campaign
@@ -39,12 +40,11 @@ def create_campaign(client, customer_id, campaign_data):
     campaign = campaign_operation.create
     campaign.name = campaign_data["name"]
     campaign.status = getattr(
-        client.enums.CampaignStatusEnum.CampaignStatus,
-        campaign_data["status"]
+        client.enums.CampaignStatusEnum.CampaignStatus, campaign_data["status"]
     )
     campaign.advertising_channel_type = getattr(
         client.enums.AdvertisingChannelTypeEnum.AdvertisingChannelType,
-        campaign_data["advertising_channel_type"]
+        campaign_data["advertising_channel_type"],
     )
 
     # Set manual CPC bidding strategy if specified
@@ -60,47 +60,57 @@ def create_campaign(client, customer_id, campaign_data):
     campaign.campaign_budget = budget_response.results[0].resource_name
 
     # Set network settings
-    campaign.network_settings.target_google_search = campaign_data["network_settings"]["target_google_search"]
-    campaign.network_settings.target_search_network = campaign_data["network_settings"]["target_search_network"]
-    campaign.network_settings.target_content_network = campaign_data["network_settings"]["target_content_network"]
-    campaign.network_settings.target_partner_search_network = campaign_data["network_settings"]["target_partner_search_network"]
+    campaign.network_settings.target_google_search = campaign_data["network_settings"][
+        "target_google_search"
+    ]
+    campaign.network_settings.target_search_network = campaign_data["network_settings"][
+        "target_search_network"
+    ]
+    campaign.network_settings.target_content_network = campaign_data[
+        "network_settings"
+    ]["target_content_network"]
+    campaign.network_settings.target_partner_search_network = campaign_data[
+        "network_settings"
+    ]["target_partner_search_network"]
 
     # Add the campaign
     response = campaign_service.mutate_campaigns(
-        customer_id=customer_id,
-        operations=[campaign_operation]
+        customer_id=customer_id, operations=[campaign_operation]
     )
     campaign_resource_name = response.results[0].resource_name
-    print(f'Created campaign with resource name: {campaign_resource_name}')
+    print(f"Created campaign with resource name: {campaign_resource_name}")
 
     # Add location criteria to the campaign
     for location_id in campaign_data["locations"]:
         location_operation = client.get_type("CampaignCriterionOperation")
         campaign_criterion = location_operation.create
         campaign_criterion.campaign = campaign_resource_name
-        campaign_criterion.location.geo_target_constant = f'geoTargetConstants/{location_id}'
-        campaign_criterion_service.mutate_campaign_criteria(
-            customer_id=customer_id,
-            operations=[location_operation]
+        campaign_criterion.location.geo_target_constant = (
+            f"geoTargetConstants/{location_id}"
         )
-        print(f'Added location criterion with ID: {location_id}')
+        campaign_criterion_service.mutate_campaign_criteria(
+            customer_id=customer_id, operations=[location_operation]
+        )
+        print(f"Added location criterion with ID: {location_id}")
 
     # Add language criteria to the campaign
     for language_id in campaign_data["languages"]:
         language_operation = client.get_type("CampaignCriterionOperation")
         campaign_criterion = language_operation.create
         campaign_criterion.campaign = campaign_resource_name
-        campaign_criterion.language.language_constant = f'languageConstants/{language_id}'
-        campaign_criterion_service.mutate_campaign_criteria(
-            customer_id=customer_id,
-            operations=[language_operation]
+        campaign_criterion.language.language_constant = (
+            f"languageConstants/{language_id}"
         )
-        print(f'Added language criterion with ID: {language_id}')
+        campaign_criterion_service.mutate_campaign_criteria(
+            customer_id=customer_id, operations=[language_operation]
+        )
+        print(f"Added language criterion with ID: {language_id}")
 
     return campaign_resource_name
 
+
 def fuzzy_match_ids(queries):
-    file_path = 'filtered_data.csv'  # Update to the actual relative path if necessary
+    file_path = "filtered_data.csv"  # Update to the actual relative path if necessary
     df = pd.read_csv(file_path)
 
     def get_ids_fuzzy(query):
@@ -110,13 +120,13 @@ def fuzzy_match_ids(queries):
 
         # Check matches in the 'Name' column
         for index, row in df.iterrows():
-            if fuzz.ratio(row['Name'], query) >= threshold:
-                matched_ids.append(row['Criteria ID'])
+            if fuzz.ratio(row["Name"], query) >= threshold:
+                matched_ids.append(row["Criteria ID"])
 
         # Check matches in the 'Canonical Name' column
         for index, row in df.iterrows():
-            if fuzz.ratio(row['Canonical Name'], query) >= threshold:
-                matched_ids.append(row['Criteria ID'])
+            if fuzz.ratio(row["Canonical Name"], query) >= threshold:
+                matched_ids.append(row["Criteria ID"])
 
         # Remove duplicates from the matched IDs
         matched_ids = list(set(matched_ids))
@@ -130,6 +140,7 @@ def fuzzy_match_ids(queries):
 
     return results
 
+
 def create_ad_group(client, customer_id, campaign_resource_name, ad_group_data):
     ad_group_service = client.get_service("AdGroupService")
     campaign_service = client.get_service("CampaignService")
@@ -138,14 +149,14 @@ def create_ad_group(client, customer_id, campaign_resource_name, ad_group_data):
     ad_group_operation = client.get_type("AdGroupOperation")
     ad_group = ad_group_operation.create
     ad_group.name = ad_group_data["name"]
-    ad_group.campaign = campaign_service.campaign_path(customer_id, campaign_resource_name)
+    ad_group.campaign = campaign_service.campaign_path(
+        customer_id, campaign_resource_name
+    )
     ad_group.status = getattr(
-        client.enums.AdGroupStatusEnum.AdGroupStatus,
-        ad_group_data["status"]
+        client.enums.AdGroupStatusEnum.AdGroupStatus, ad_group_data["status"]
     )
     ad_group.type_ = getattr(
-        client.enums.AdGroupTypeEnum.AdGroupType,
-        ad_group_data["ad_group_type"]
+        client.enums.AdGroupTypeEnum.AdGroupType, ad_group_data["ad_group_type"]
     )
 
     # Set bidding strategy
@@ -154,12 +165,12 @@ def create_ad_group(client, customer_id, campaign_resource_name, ad_group_data):
 
     # Add the ad group
     response = ad_group_service.mutate_ad_groups(
-        customer_id=customer_id,
-        operations=[ad_group_operation]
+        customer_id=customer_id, operations=[ad_group_operation]
     )
     ad_group_resource_name = response.results[0].resource_name
-    print(f'Created ad group with resource name: {ad_group_resource_name}')
+    print(f"Created ad group with resource name: {ad_group_resource_name}")
     return ad_group_resource_name
+
 
 def create_ad_text_asset(client, text, pinned_field=None):
     """Create an AdTextAsset.
@@ -178,9 +189,8 @@ def create_ad_text_asset(client, text, pinned_field=None):
         ad_text_asset.pinned_field = pinned_field
     return ad_text_asset
 
-def create_ad_text_asset_with_customizer(
-    client, customizer_attribute_resource_name
-):
+
+def create_ad_text_asset_with_customizer(client, customizer_attribute_resource_name):
     """Create an AdTextAsset.
     Args:
         client: an initialized GoogleAdsClient instance.
@@ -218,9 +228,7 @@ def create_campaign_budget(client, customer_id):
     campaign_budget_operation = client.get_type("CampaignBudgetOperation")
     campaign_budget = campaign_budget_operation.create
     campaign_budget.name = f"Campaign budget {uuid.uuid4()}"
-    campaign_budget.delivery_method = (
-        client.enums.BudgetDeliveryMethodEnum.STANDARD
-    )
+    campaign_budget.delivery_method = client.enums.BudgetDeliveryMethodEnum.STANDARD
     campaign_budget.amount_micros = 500000
 
     # Add budget.
@@ -253,7 +261,7 @@ def create_ad_group_ad(client, customer_id, ad_group_resource_name, ad_data):
 
     ad_group_ad.ad.responsive_search_ad.path1 = ad_data.get("path1", "")
     ad_group_ad.ad.responsive_search_ad.path2 = ad_data.get("path2", "")
-    
+
     # Always set customizer_attribute_name to None
     ad_data["customizer_attribute_name"] = None
 
@@ -264,13 +272,13 @@ def create_ad_group_ad(client, customer_id, ad_group_resource_name, ad_data):
     #     for image_url in ad_data["images"]:
     #         image_asset_operation = client.get_type("AssetOperation")
     #         image_asset = image_asset_operation.create
-            
+
     #         # Set the asset type and provide a name for the asset
     #         image_asset.type_ = client.enums.AssetTypeEnum.IMAGE
     #         image_asset.name = f"Image Asset for {image_url.split('/')[-1]}"  # Unique name based on the file name
     #         image_asset.image_asset.data = get_image_bytes(image_url)  # Helper function to fetch image data
     #         image_asset.image_asset.file_size = 600000  # Example size limit in bytes
-            
+
     #         # Make the API request to create the asset
     #         image_response = asset_service.mutate_assets(customer_id=customer_id, operations=[image_asset_operation])
     #         image_assets.append(image_response.results[0].resource_name)
@@ -293,14 +301,15 @@ def create_ad_group_ad(client, customer_id, ad_group_resource_name, ad_data):
 
 
 def get_image_bytes(image_url):
-    if image_url.startswith('http://') or image_url.startswith('https://'):
+    if image_url.startswith("http://") or image_url.startswith("https://"):
         import requests
+
         response = requests.get(image_url)
         return response.content if response.status_code == 200 else None
     else:
         # Load from local file
         try:
-            with open(image_url, 'rb') as img_file:
+            with open(image_url, "rb") as img_file:
                 return img_file.read()
         except FileNotFoundError:
             print(f"File not found: {image_url}")
@@ -314,7 +323,7 @@ def add_keywords(client, customer_id, ad_group_resource_name, keyword_data):
     match_types = {
         "exact": client.enums.KeywordMatchTypeEnum.EXACT,
         "phrase": client.enums.KeywordMatchTypeEnum.PHRASE,
-        "broad": client.enums.KeywordMatchTypeEnum.BROAD
+        "broad": client.enums.KeywordMatchTypeEnum.BROAD,
     }
 
     for match_key, match_type in match_types.items():
@@ -342,12 +351,14 @@ def main_add_adgroup(client, customer_id, campaign_id, ad_group_data):
     # Create ad group.
     ad_group_operation = client.get_type("AdGroupOperation")
     ad_group = ad_group_operation.create
-    
+
     # Set the ad group attributes from the ad_group_data dictionary
     ad_group.name = ad_group_data["name"]
     ad_group.status = getattr(client.enums.AdGroupStatusEnum, ad_group_data["status"])
     ad_group.campaign = campaign_service.campaign_path(customer_id, campaign_id)
-    ad_group.type_ = getattr(client.enums.AdGroupTypeEnum, ad_group_data["ad_group_type"])
+    ad_group.type_ = getattr(
+        client.enums.AdGroupTypeEnum, ad_group_data["ad_group_type"]
+    )
     ad_group.cpc_bid_micros = ad_group_data["cpc_bid_micros"]
 
     # Add the ad group.
@@ -360,10 +371,9 @@ def main_add_adgroup(client, customer_id, campaign_id, ad_group_data):
 
     return resource_name
 
+
 def get_campaign_id_from_resource_name(resource_name):
-    return resource_name.split('/')[-1]
-
-
+    return resource_name.split("/")[-1]
 
 
 def add_local_image_asset(client, customer_id, local_image_path):
@@ -394,15 +404,14 @@ def add_local_image_asset(client, customer_id, local_image_path):
         print(f"\tResource name: {row.resource_name}")
 
 
-
 # Ensure to call the main function with appropriate client and customer_id
 
 
 # Main script
-def main(data, credentials):
+def publish_ads(data, credentials):
     client = GoogleAdsClient.load_from_dict(credentials)
-    CUSTOMER_ID = '3121181490'
-    
+    CUSTOMER_ID = "3121181490"
+
     # Initialize a results object to store messages
     results = {}
 
@@ -416,7 +425,9 @@ def main(data, credentials):
     results["campaign_id"] = campaign_id
 
     # Create ad group
-    ad_group_resource_name = main_add_adgroup(client, CUSTOMER_ID, campaign_id, data["ad_group"])
+    ad_group_resource_name = main_add_adgroup(
+        client, CUSTOMER_ID, campaign_id, data["ad_group"]
+    )
     ad_group_id = get_campaign_id_from_resource_name(ad_group_resource_name)
     results["ad_group_id"] = ad_group_id
 
@@ -424,9 +435,10 @@ def main(data, credentials):
     create_ad_group_ad(client, CUSTOMER_ID, ad_group_resource_name, data["ad"])
 
     # Add keywords
-    #add_keywords(client, CUSTOMER_ID, ad_group_resource_name, keyword_data)
+    # add_keywords(client, CUSTOMER_ID, ad_group_resource_name, keyword_data)
 
     return results
+
 
 if __name__ == "__main__":
     # Input data dictionaries
@@ -442,7 +454,7 @@ if __name__ == "__main__":
                 "target_google_search": True,
                 "target_search_network": False,
                 "target_content_network": False,
-                "target_partner_search_network": False
+                "target_partner_search_network": False,
             },
             "locations": [],  # Will be filled later from fuzzy matching
             "languages": [1000],  # Example: English
@@ -456,38 +468,33 @@ if __name__ == "__main__":
             "name": "26",  # Provide the ad group name here
             "status": "ENABLED",  # Status can be "ENABLED" or "PAUSED"
             "ad_group_type": "SEARCH_STANDARD",  # Specify the ad group type
-            "cpc_bid_micros": 10000000  # Set the CPC bid in micros
+            "cpc_bid_micros": 10000000,  # Set the CPC bid in micros
         },
         "ad": {
             "final_url": "https://www.amazon.com/",
             "headlines": [
                 "Headline 1 testing",
                 "Headline 2 testing",
-                "Headline 3 testing"
+                "Headline 3 testing",
             ],
-            "descriptions": [
-                "Desc 1 testing",
-                "Desc 2 testing"
-            ],
+            "descriptions": ["Desc 1 testing", "Desc 2 testing"],
             "path1": "all-inclusive",
             "path2": "deals",
             "images": [
                 "/home/falcon/Projects/MumbaiHacks/Server/GoogleAds/image.jpeg",
             ],
-            "customizer_attribute_name": None
-        }
+            "customizer_attribute_name": None,
+        },
     }
 
     # Load credentials from a YAML file
-    credentials_path = os.path.join(os.path.dirname(__file__), 'credentials.yaml')
+    credentials_path = os.path.join(os.path.dirname(__file__), "credentials.yaml")
     credentials = load_credentials(credentials_path)
 
-    print (credentials)
+    print(credentials)
 
     # Run the main function with data and credentials and capture the results
-    results = main(data, credentials)
+    results = publish_ads(data, credentials)
 
     # You can now access the results object to see all messages
     print(results)  # This will print the collected results with respective keys
-
-
