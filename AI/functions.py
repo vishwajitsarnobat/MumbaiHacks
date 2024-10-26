@@ -39,7 +39,6 @@ class AdvertisementGenerator:
         self.hf_headers = {"Authorization": f"Bearer {self.hf_api_key}"}
         self.llama_url = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct"
         self.stable_diffusion_url = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4"
-        # self.stable_diffusion_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large"
         
         # Configure Gemini
         genai.configure(api_key=self.gemini_api_key)
@@ -47,34 +46,26 @@ class AdvertisementGenerator:
 
     def generate_multilingual_content(
         self, prompt: str, languages: List[str]
-    ) -> Dict[str, Tuple[List[str], List[str]]]:
+    ) -> Dict[str, Tuple[str, str]]:
         """Generate multilingual content using Gemini."""
         try:
             formatted_prompt = f"""
             Create advertisement content for the following languages: {', '.join(languages)}
             Advertisement requirements: {prompt}
             
-            For each language, provide:
-            1. Three creative and culturally appropriate titles (short and catchy)
-            2. Three compelling and detailed descriptions
+            For each language, provide 3 creative and culturally appropriate:
+            1. Title (short and catchy)
+            2. Description (compelling and detailed)
             
             Return ONLY a valid Python dictionary in this exact format, nothing else:
-            Dictionary with all languages in {languages} as keys, and tuple of (list_of_titles, list_of_descriptions) as values.
-            Each list should contain exactly 3 items.
-            
-            Example format:
-            {{
-                "English": (
-                    ["Title 1", "Title 2", "Title 3"],
-                    ["Description 1", "Description 2", "Description 3"]
-                )
-            }}
+            Dictionary with all languages in {languages} as the keys, and tuple of (title, description) as the value.
             """
 
             response = self.gemini_model.generate_content(formatted_prompt)
             
             # Clean the response text
             response_text = response.text.strip()
+            # Remove any markdown code block indicators if present
             response_text = response_text.replace("```python", "").replace("```", "").strip()
             
             try:
@@ -84,40 +75,20 @@ class AdvertisementGenerator:
                 # Fallback content creation
                 content = {}
                 for lang in languages:
-                    content[lang] = (
-                        [f"Default Title {i+1} in {lang}" for i in range(3)],
-                        [f"Default Description {i+1} in {lang}" for i in range(3)]
-                    )
+                    content[lang] = (f"Default Title in {lang}", f"Default Description in {lang}")
             
             # Validate the response format
             for lang in languages:
                 if lang not in content:
-                    content[lang] = (
-                        [f"Default Title {i+1} in {lang}" for i in range(3)],
-                        [f"Default Description {i+1} in {lang}" for i in range(3)]
-                    )
+                    content[lang] = (f"Default Title in {lang}", f"Default Description in {lang}")
                 if not isinstance(content[lang], tuple) or len(content[lang]) != 2:
-                    content[lang] = (
-                        [f"Default Title {i+1} in {lang}" for i in range(3)],
-                        [f"Default Description {i+1} in {lang}" for i in range(3)]
-                    )
-                # Ensure each list has exactly 3 items
-                titles, descriptions = content[lang]
-                if not isinstance(titles, list) or len(titles) != 3:
-                    titles = [f"Default Title {i+1} in {lang}" for i in range(3)]
-                if not isinstance(descriptions, list) or len(descriptions) != 3:
-                    descriptions = [f"Default Description {i+1} in {lang}" for i in range(3)]
-                content[lang] = (titles, descriptions)
+                    content[lang] = (f"Default Title in {lang}", f"Default Description in {lang}")
                     
             return content
         except Exception as e:
             logger.error(f"Error generating multilingual content: {e}")
-            return {
-                lang: (
-                    [f"Default Title {i+1} in {lang}" for i in range(3)],
-                    [f"Default Description {i+1} in {lang}" for i in range(3)]
-                ) for lang in languages
-            }
+            # Return default content instead of raising
+            return {lang: (f"Default Title in {lang}", f"Default Description in {lang}") for lang in languages}
 
     def generate_image_prompts(
         self, base_prompt: str, languages: List[str]
@@ -133,19 +104,24 @@ class AdvertisementGenerator:
 
             response = self.gemini_model.generate_content(prompt)
             
+            # Clean and check response text
             response_text = response.text.strip()
             print(f"Raw image prompt response: {response_text}")  # For debugging
 
+            # Remove any triple backticks and language specifier
             if response_text.startswith("```") and response_text.endswith("```"):
                 response_text = response_text[3:-3].strip()
-            response_text = response_text.replace("json", "").strip()
+            response_text = response_text.replace("json", "").strip()  # Remove "json" if present
 
             try:
+                # Use ast.literal_eval to safely evaluate the cleaned string as a dictionary
                 prompts = ast.literal_eval(response_text)
             except Exception as parse_error:
                 logger.error(f"Failed to parse image prompts with ast.literal_eval: {parse_error}")
+                # Fallback: Generate a default dictionary if parsing fails
                 prompts = {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
 
+            # Ensure all languages have prompts
             for lang in languages:
                 if lang not in prompts:
                     prompts[lang] = f"Advertisement for {base_prompt} in {lang} style"
@@ -154,8 +130,8 @@ class AdvertisementGenerator:
 
         except Exception as e:
             logger.error(f"Error generating image prompts: {e}")
+            # Return default prompts instead of raising
             return {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
-
     def generate_image(self, prompt: str) -> bytes:
         """Generate image using Stable Diffusion."""
         try:
@@ -167,27 +143,6 @@ class AdvertisementGenerator:
             return response.content
         except Exception as e:
             logger.error(f"Error generating image: {e}")
-            raise
-
-    def generate_llama_content(self, prompt: str) -> str:
-        """Generate content using Llama model (kept for future use)."""
-        try:
-            payload = {
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": 100,
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "do_sample": True,
-                },
-            }
-            response = requests.post(
-                self.llama_url, headers=self.hf_headers, json=payload
-            )
-            response.raise_for_status()
-            return response.json()[0]["generated_text"]
-        except Exception as e:
-            logger.error(f"Error generating Llama content: {e}")
             raise
 
     def generate_advertisements(
