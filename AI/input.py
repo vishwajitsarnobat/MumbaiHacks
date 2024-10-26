@@ -58,27 +58,27 @@ async def fill_template(input_json):
             json_str["campaigns"][i]["ad"]["path2"] = ""
             json_str["campaigns"][i]["ad"]["customizer_attribute_name"] = None
 
-        targeting = json_str["campaign_data"]
-        (status, details) = generate_ad_content(
-            targeting["locations"],
-            "general public",
-            input_json["languages"],
-            input_json["prompt"],
-        )
-        # {"language":([title],[description],image)}
-        if status:
-            for language in details:
-                input_json["campaigns"]["ad"]["headlines"] = []
-                input_json["campaigns"]["ad"]["descriptions"][i] = []
-                input_json["campaigns"]["ad"]["images"][0] = details[language][2]
-                for i in len(details[language][0]):
-                    input_json["campaigns"]["ad"]["headlines"].push(
-                        details[language][0][i]
-                    )
-                    input_json["campaigns"]["ad"]["descriptions"][i].push(
-                        details[language][1][i]
-                    )
-        return json_str
+            targeting = json_str["campaign_data"]
+            (status, details) = generate_ad_content(
+                targeting["locations"],
+                "general public",
+                input_json["languages"],
+                input_json["prompt"],
+            )
+            # {"language":([title],[description],image)}
+            if status:
+                for language in details:
+                    input_json["campaigns"]["ad"]["headlines"] = []
+                    input_json["campaigns"]["ad"]["descriptions"][i] = []
+                    input_json["campaigns"]["ad"]["images"][0] = details[language][2]
+                    for i in len(details[language][0]):
+                        input_json["campaigns"]["ad"]["headlines"].push(
+                            details[language][0][i]
+                        )
+                        input_json["campaigns"]["ad"]["descriptions"][i].push(
+                            details[language][1][i]
+                        )
+            return json_str
     else:
         print("Error: No response from Gemini API")
         return None
@@ -97,7 +97,6 @@ if __name__ == "__main__":
     input_json = {
         "prompt": "poster for an ad for promoting my restaurant",
         "languages": ["English"],
-        "type": ["Ad", "Post"],
         "locations": ["Maharashtra", "ahmendabad"],
         "budget_amount_micros": 500000,
     }
