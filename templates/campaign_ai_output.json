@@ -1,50 +1,27 @@
 {
-  "campaign_data": {
-    "budget_amount_micros": 50000000,
-    "name": "Unique name for the campaign",
-    "network_settings": {
-      "target_google_search": true,
-      "target_search_network": false,
-      "target_content_network": false,
-      "target_partner_search_network": false
-    },
-    "locations": ["", ""],
-    "details": {
-      "language1": {
-        "amount_allocated": 500,
-        "amount_cpc": 5000
+  campaigns:[
+  "campaign": {
+      "name": "",
+      "advertising_channel_type": "SEARCH",
+      "budget_amount_micros": 000,
+      "network_settings": {
+          "target_google_search": true,
+          "target_search_network": false,
+          "target_content_network": false,
+          "target_partner_search_network": false
       },
-      "language2": {
-        "amount_allocated": 500,
-        "amount_cpc": 5000
-      }
-    }
+      "locations": [""],
+      "languages": ["English"],
+      "conversion_goals": "Account-default",
+      "customer_acquisition": true or false,
+      "marketing_objective": null,
+      "start_date": "2024-10-26",
+      "end_date": ""
   },
-  "campaign_type": [
-    {
-      "type": "SEARCH",
-      "compatible_ad_group_types": ["SEARCH_STANDARD"]
-    },
-    {
-      "type": "DISPLAY",
-      "compatible_ad_group_types": ["DISPLAY_STANDARD"]
-    },
-    {
-      "type": "SHOPPING",
-      "compatible_ad_group_types": ["SHOPPING_PRODUCT_ADS"]
-    },
-    {
-      "type": "SMART",
-      "compatible_ad_group_types": ["SMART_CAMPAIGN_ADS"]
-    }
-  ],
-
-  "explanations": [
-    {
-      "title1": "explanation1"
-    },
-    {
-      "title2": "explanation2"
-    }
-  ]
+  "ad_group": {
+      "name": "20",
+      "ad_group_type": "SEARCH_STANDARD",
+      "cpc_bid_micros": 000
+  },
+  summary:" "
 }

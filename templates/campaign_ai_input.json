@@ -1,8 +1,6 @@
 {
-    "prompt": "poster for a ad for promoting my resturant",
-    "languages": ["English","hindi"],
-    "type": ["Ad","Post"],
-    "locations": ["mumbai","kurla"],
-    "budget":555
-    {% comment %} location only used for targeting, not generating multiple prompt {% endcomment %}
+  "prompt": "poster for a ad for promoting my resturant",
+  "languages": ["English", "hindi"],
+  "locations": ["mumbai", "kurla"],
+  "budget": 555
 }
