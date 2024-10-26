@@ -2,12 +2,12 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
-from functions import get_details
+# from functions import get_details
 
 # Load the API key from the .env file
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY_YEET")
-with open("../templates/campaign/campaign_ai_output.json", "r") as file:
+with open("../templates/campaign_ai_output.json", "r") as file:
     template_json = json.load(file)
 template_json_str = json.dumps(template_json, indent=4)
 model_name = "gemini-1.5-flash"
