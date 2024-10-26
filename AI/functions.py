@@ -111,8 +111,6 @@ def convert_image_to_base64(image_bytes: bytes) -> str:
         raise
 
 async def generate_ad_content(
-    hf_api_key: str,
-    gemini_api_key: str,
     location: Union[str, List[str]],
     age_group: str,
     languages: List[str],
@@ -124,10 +122,11 @@ async def generate_ad_content(
     """
     try:
         # Initialize API configurations
-        hf_headers = {"Authorization": f"Bearer {hf_api_key}"}
+        hf_headers = {"Authorization": f"Bearer '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'"}
         stable_diffusion_url = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4"
         
         # Configure Gemini
+        gemini_api_key = 'AIzaSyDj97xwlHatiROdoV8B0C5BOhJhnSe85Dk'
         genai.configure(api_key=gemini_api_key)
         gemini_model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
