@@ -4,8 +4,6 @@ import ast
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
 import logging
-import json
-import re
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -98,29 +96,17 @@ def generate_image_prompts(base_prompt: str, languages: List[str]) -> Dict[str, 
         Generate image prompts in English for advertisements tailored to different regions in India. Each region's advertisement should be described in English but incorporate cultural and regional nuances unique to that area's language and preferences.
         Base advertisement concept: {base_prompt}
         
-        Please return only a dictionary in JSON format where each language in {languages} is a key, 
-        and the value is the English prompt for that language's regional advertisement. No extra text, only JSON output.
+        Return only a dictionary format where each language in {languages} is a key, and the value is the English prompt for that language's regional advertisement.
         """
         
         response = GEMINI_MODEL.generate_content(prompt)
         response_text = response.text.strip()
         
-        # Attempt JSON loading directly
         try:
-            prompts = json.loads(response_text)
-        except json.JSONDecodeError:
-            try:
-                # Use regex to find dictionary-like structure
-                dict_match = re.search(r"\{.*\}", response_text, re.DOTALL)
-                if dict_match:
-                    response_text = dict_match.group(0)
-                    prompts = ast.literal_eval(response_text)
-                else:
-                    raise ValueError("No dictionary structure found.")
-            except (SyntaxError, ValueError) as parse_error:
-                logger.error(f"Failed to parse image prompts with both JSON and ast: {parse_error}")
-                # Fallback to default prompt structure
-                prompts = {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
+            prompts = ast.literal_eval(response_text)
+        except Exception as parse_error:
+            logger.error(f"Failed to parse image prompts: {parse_error}")
+            prompts = {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
         
         return {
             lang: prompts.get(lang, f"Advertisement for {base_prompt} in {lang} style")
@@ -129,6 +115,7 @@ def generate_image_prompts(base_prompt: str, languages: List[str]) -> Dict[str, 
     except Exception as e:
         logger.error(f"Error generating image prompts: {e}")
         return {lang: f"Advertisement for {base_prompt} in {lang} style" for lang in languages}
+
 def generate_image(prompt: str) -> bytes:
     """Generate image using Stable Diffusion."""
     try:
